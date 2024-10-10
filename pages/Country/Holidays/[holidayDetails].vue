@@ -40,11 +40,12 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { fetchCountryHolidays } from '~/services/holidayService';
+import { CountryService } from '~/services/countryService';
 import type { IHoliday} from '~/services/types';
 
 const route = useRoute();
 const holidays = ref<IHoliday[] | any>([]);
-const countryName = ref<string>('');
+let countryName = ref<string | null>(null);
 const selectedYear = ref<number>(new Date().getFullYear());
 const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
@@ -52,8 +53,9 @@ const fetchHolidaysForYear = async (year: number) => {
   const countryCode = route.params.holidayDetails as string;
   try {
     const response = await fetchCountryHolidays(countryCode, year);
+    const countryData = await  CountryService()
+    countryName.value = countryData.filter((country) => country.countryCode === countryCode)[0]?.name;
     holidays.value = response.holidays;
-    countryName.value = response.countryName;
     selectedYear.value = year;
   } catch (error) {
     console.error('Error fetching holidays:', error);
